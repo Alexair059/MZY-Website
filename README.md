@@ -1,5 +1,5 @@
 # Watchlist
-A *watchlist web* based on Flask
+A *watchlist website* based on Flask
 
 ### Features
 
