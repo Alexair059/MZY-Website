@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
     {% endblock %}
 </head>
-<body>
+<body bgcolor="#F3F3F3">
     <!-- 插入到页面标题上方 -->
     {% for message in get_flashed_messages() %}
         <div class="alert">{{ message }}</div>

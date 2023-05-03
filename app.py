@@ -13,17 +13,24 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
+from werkzeug.utils import secure_filename
+
 WIN = sys.platform.startswith('win')
 if WIN:  # 如果是 Windows 系统，使用三个斜线
     prefix = 'sqlite:///'
 else:  # 否则使用四个斜线
     prefix = 'sqlite:////'
 
+UPLOAD_PATH = 'uploads'
+ALLOWED_EXTENSIONS = ('txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif') # 文件上传功能配置
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(app.root_path, 'data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
 app.config['SECRET_KEY'] = 'dev'  # 等同于 app.secret_key = 'dev'
+app.config['UPLOAD_FOLDER'] = UPLOAD_PATH
+# app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000 # 文件上传功能配置
 
 # 在扩展类实例化前加载配置
 db = SQLAlchemy(app)
@@ -54,6 +61,10 @@ def load_user(user_id):  # 创建用户加载回调函数，接受用户 ID 作�
     user = User.query.get(int(user_id))  # 用 ID 作为 User 模型的主键查询对应的用户
     return user  # 返回用户对象
 
+# 文件上传拓展名检查
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/')
 @app.route('/home')
 def hello():
@@ -62,6 +73,25 @@ def hello():
 @app.route('/user/<name>')
 def user_page(name):
     return f'User: {escape(name)}'
+
+@app.route('/upload_files', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+        file = request.files['file']
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+        if file.filename == '':
+            flash('No selected file', 'error')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], filename))
+            flash('Upload success!!!', 'error')
+    return render_template('upload.html')
 
 @app.context_processor
 def inject_user():  # 函数名可以随意修改
