@@ -13,7 +13,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename # 文件上传功能导入库
+
+from FGSM.FGSM_Test import check # 导入FGSM检测模块
 
 WIN = sys.platform.startswith('win')
 if WIN:  # 如果是 Windows 系统，使用三个斜线
@@ -92,6 +94,27 @@ def upload_file():
             file.save(os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], filename))
             flash('Upload success!!!', 'error')
     return render_template('upload.html')
+
+@app.route('/FGSM', methods=['GET', 'POST'])
+def FGSM():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'test')
+            return redirect(request.url)
+        file = request.files['file']
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+        if file.filename == '':
+            flash('No selected file', 'test')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            file.save(os.path.join(app.root_path, 'test.png'))
+            result = check(os.path.join(app.root_path, 'test.png'),
+                           os.path.join(app.root_path, 'FGSM_img', 'std.png'), os.path.join(app.root_path, 'FGSM', 'MyNet.pt'))
+            flash(result, 'test')
+            os.remove(os.path.join(app.root_path, 'test.png'))
+    return render_template('FGSM.html')
 
 @app.context_processor
 def inject_user():  # 函数名可以随意修改

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FGSM Test</title>
+    <link rel="icon" href="{{ url_for('static', filename='light.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
+</head>
+<body bgcolor="#F3F3F3">
+    {% for message in get_flashed_messages(category_filter=["test"]) %}
+    <!-- 只显示FGSM测试的flash -->
+    <div class="alert">{{ message }}</div>
+    {% endfor %}
+    <h2>
+        <img alt="Avatar" class="avatar" src="{{ url_for('static', filename='snow.jpg') }}">
+        Upload Image For FGSM
+    </h2>
+    <form method=post enctype=multipart/form-data>
+        <input class="btn" type=file name=file>
+        <input class="btn" type=submit value=Upload>
+    </form>
+</body>
+</html>
