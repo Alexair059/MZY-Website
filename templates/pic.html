@@ -18,7 +18,9 @@
         <div class="row">
           <div class="col-sm-8 col-md-7 py-4">
             <h4 class="text-white">关于</h4>
-            <p class="text-muted">简单的个人图站，算是对自己对前后端学习的一个小总结。感谢你能来到这儿！</p>
+            <p class="text-muted">简单的个人图站，算是对自己对前后端学习的一个小总结。
+              后端基于Flask框架构建，前端采用bootstrap美化。后续有时间会不断优化。
+              感谢你能来到这儿！</p>
           </div>
           <div class="col-sm-4 offset-md-1 py-4">
             <h4 class="text-white">联系方式</h4>
@@ -56,7 +58,7 @@
     <section class="jumbotron text-center">
       <div class="container">
         <h1>MZY-Pic</h1>
-        <p class="lead text-muted">在此处上传你的图片（仅支持.jpg格式）</p>
+        <p class="lead text-muted">在此处上传你的图片（目前仅支持英文命名.jpg格式）</p>
         <form method=post enctype=multipart/form-data>
           <input class="btn" type=file name=file>
           <input class="btn btn-primary my-2" type=submit value=Upload>
@@ -76,9 +78,13 @@
                 <h5 class="card-title mt-0">{{pic.name}}</h5>
                 <p class="card-text mt-0">这是正在建设中的图片介绍区 @A@...前端好麻烦好麻烦</p>
                 <div class="d-flex flex-fill align-items-end justify-content-between">
-                  <form class="display: inline;" method="post" action="{{url_for('delpic', pic_id=pic.id)}}">
+                  <!-- <form class="display: inline;" method="post" action="{{url_for('delpic', pic_id=pic.id)}}">
                     <input class="btn btn-sm btn-outline-secondary" type="submit" name="delete" value="Delete"
                       onclick="return confirm('Are you sure?')">
+                  </form> -->
+                  <form class="display: inline;" method="get" action="#">
+                    <input class="btn btn-sm btn-outline-secondary" type="submit" name="delete" value="Delete"
+                      onclick="return confirm('删除功能修复中，一切的一切起源于一个小小的函数...')">
                   </form>
                   <small class="text-muted">未知上传者</small>
                 </div>

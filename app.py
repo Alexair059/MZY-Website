@@ -283,9 +283,9 @@ def forge():
         {'title': 'The Pork of Music', 'year': '2012'},
     ]
     pics = [
-        {'name': '北极'},
-        {'name': '樱花'},
-        {'name': '夜晚'}
+        {'name': 'Snow'},
+        {'name': 'Bridge'},
+        {'name': 'Night'}
     ]
 
     user = User(name=name)
