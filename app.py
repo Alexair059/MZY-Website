@@ -24,7 +24,7 @@ else:  # 否则使用四个斜线
     prefix = 'sqlite:////'
 
 UPLOAD_PATH = 'uploads'
-ALLOWED_EXTENSIONS = ('txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif') # 文件上传功能配置
+ALLOWED_EXTENSIONS = ('jpg') # 文件上传功能配置
 
 app = Flask(__name__)
 
@@ -55,6 +55,10 @@ class Movie(db.Model):  # 表名将会是 movie
     title = db.Column(db.String(60))  # 电影标题
     year = db.Column(db.String(4))  # 电影年份
 
+class Pic(db.Model): # 为图站新创建的表
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20))
+
 login_manager = LoginManager(app)  # 实例化扩展类
 login_manager.login_view = 'login'
 
@@ -75,6 +79,39 @@ def hello():
 @app.route('/user/<name>')
 def user_page(name):
     return f'User: {escape(name)}'
+
+@app.route('/MZY-Pic', methods=['GET', 'POST'])
+def pic():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            # flash('No file part', 'error')
+            return redirect(request.url)
+        file = request.files['file']
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+        if file.filename == '':
+            # flash('No selected file', 'error')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.root_path, 'static', 'imgs', filename))
+            # flash('Upload success!!!', 'error')
+            pic = Pic(name=filename.rsplit('.', 1)[0])
+            db.session.add(pic)
+            db.session.commit()
+            return redirect(url_for('pic'))
+    pics = Pic.query.all()
+    return render_template('pic.html', pics = pics)
+
+@app.route('/MZY-Pic/delete/<int:pic_id>', methods=['POST'])
+def delpic(pic_id):
+    pic = Pic.query.get_or_404(pic_id)
+    fullname = pic.name + '.jpg'
+    os.remove(os.path.join(app.root_path, 'static', 'imgs', fullname))
+    db.session.delete(pic)
+    db.session.commit()
+    return redirect(url_for('pic'))
 
 @app.route('/upload_files', methods=['GET', 'POST'])
 def upload_file():
@@ -230,7 +267,6 @@ def settings():
 @app.cli.command()
 def forge():
     """Generate fake data."""
-    db.create_all()
 
     # 全局的两个变量移动到这个函数内
     name = 'Alexair'
@@ -246,12 +282,21 @@ def forge():
         {'title': 'WALL-E', 'year': '2008'},
         {'title': 'The Pork of Music', 'year': '2012'},
     ]
+    pics = [
+        {'name': '北极'},
+        {'name': '樱花'},
+        {'name': '夜晚'}
+    ]
 
     user = User(name=name)
     db.session.add(user)
     for m in movies:
         movie = Movie(title=m['title'], year=m['year'])
         db.session.add(movie)
+
+    for p in pics:
+        pic = Pic(name=p['name'])
+        db.session.add(pic)
 
     db.session.commit()
     click.echo('Done.')
@@ -270,7 +315,6 @@ def initdb(drop):
 @click.option('--password', prompt=True, hide_input=True, confirmation_prompt=True, help='The password used to login.')
 def admin(username, password):
     """Create user."""
-    db.create_all()
 
     user = User.query.first()
     if user is not None:
