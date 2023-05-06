@@ -17,6 +17,9 @@ from werkzeug.utils import secure_filename # 文件上传功能导入库
 
 from FGSM.FGSM_Test import check # 导入FGSM检测模块
 
+import datetime
+import random # 基于添加随机字符的时间戳为上传图片生成唯一文件名
+
 WIN = sys.platform.startswith('win')
 if WIN:  # 如果是 Windows 系统，使用三个斜线
     prefix = 'sqlite:///'
@@ -24,7 +27,7 @@ else:  # 否则使用四个斜线
     prefix = 'sqlite:////'
 
 UPLOAD_PATH = 'uploads'
-ALLOWED_EXTENSIONS = ('jpg') # 文件上传功能配置
+ALLOWED_EXTENSIONS = ('jpg', 'jpeg', 'png') # 文件上传功能配置
 
 app = Flask(__name__)
 
@@ -57,7 +60,11 @@ class Movie(db.Model):  # 表名将会是 movie
 
 class Pic(db.Model): # 为图站新创建的表
     id = db.Column(db.Integer, primary_key=True)
+    path = db.Column(db.String(10))
     name = db.Column(db.String(20))
+    desc = db.Column(db.String(128))
+    uploader = db.Column(db.String(10))
+
 
 login_manager = LoginManager(app)  # 实例化扩展类
 login_manager.login_view = 'login'
@@ -85,19 +92,27 @@ def pic():
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
-            # flash('No file part', 'error')
+            flash('No file part', 'check')
             return redirect(request.url)
         file = request.files['file']
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
         if file.filename == '':
-            # flash('No selected file', 'error')
+            flash('未选择图片', 'check')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.root_path, 'static', 'imgs', filename))
-            # flash('Upload success!!!', 'error')
-            pic = Pic(name=filename.rsplit('.', 1)[0])
+            suffix = filename.rsplit('.', 1)[1]
+            now = datetime.datetime.now()
+            timestamp = now.strftime("%Y%m%d_%H%M%S")
+            random_str = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz', k=4))
+            picname = timestamp + '_' + random_str + '.' + suffix
+            file.save(os.path.join(app.root_path, 'static', 'imgs', picname))
+            flash('上传成功', 'check')
+            pictitle = request.form.get('pictitle')  # 传入表单对应输入字段的 name 值
+            picdes = request.form.get('picdes')
+            picuploader = request.form.get('picloader')
+            pic = Pic(path=picname, name=pictitle, desc=picdes, uploader=picuploader)
             db.session.add(pic)
             db.session.commit()
             return redirect(url_for('pic'))
@@ -107,8 +122,7 @@ def pic():
 @app.route('/MZY-Pic/delete/<int:pic_id>', methods=['POST'])
 def delpic(pic_id):
     pic = Pic.query.get_or_404(pic_id)
-    fullname = pic.name + '.jpg'
-    os.remove(os.path.join(app.root_path, 'static', 'imgs', fullname))
+    os.remove(os.path.join(app.root_path, 'static', 'imgs', pic.path))
     db.session.delete(pic)
     db.session.commit()
     return redirect(url_for('pic'))
@@ -283,9 +297,18 @@ def forge():
         {'title': 'The Pork of Music', 'year': '2012'},
     ]
     pics = [
-        {'name': 'Snow'},
-        {'name': 'Bridge'},
-        {'name': 'Night'}
+        {'path': 'Snow.jpg',
+         'name': '雪',
+         'desc': 'Bing壁纸收藏1，一直想去这样的地方看看',
+         'uploader': 'r0setta'},
+        {'path': 'Bridge.jpg',
+         'name': '桥',
+         'desc': 'Bing壁纸收藏2，很喜欢这个角度',
+         'uploader': 'r0setta'},
+        {'path': 'Night.jpg',
+         'name': '夜晚',
+         'desc': 'Bing壁纸收藏3，在这里逛逛一定很棒',
+         'uploader': 'r0setta'}
     ]
 
     user = User(name=name)
@@ -295,7 +318,7 @@ def forge():
         db.session.add(movie)
 
     for p in pics:
-        pic = Pic(name=p['name'])
+        pic = Pic(path=p['path'], name=p['name'], desc=p['desc'], uploader=p['uploader'])
         db.session.add(pic)
 
     db.session.commit()

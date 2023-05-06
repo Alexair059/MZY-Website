@@ -57,9 +57,30 @@
   <main role="main">
     <section class="jumbotron text-center">
       <div class="container">
+        {% for message in get_flashed_messages(category_filter=["check"]) %}
+        <!-- 只显示Pic_check的flash -->
+        <div class="alert alert-secondary alert-dismissible fade show" role="alert">
+          <strong>{{message}}</strong>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {% endfor %}
         <h1>MZY-Pic</h1>
-        <p class="lead text-muted">在此处上传你的图片（目前仅支持英文命名.jpg格式）</p>
+        <p class="lead text-muted">在此处上传你的图片（支持.jpg .jpeg .png格式）</p>
         <form method=post enctype=multipart/form-data>
+          <div class="form-group">
+            <div class="text-muted text-left"><label for="title">标题</label></div>
+            <input type="text" class="form-control" id="title" name="pictitle" autocomplete="off" required>
+          </div>
+          <div class="form-group">
+            <div class="text-muted text-left"><label for="description">描述</label></div>
+            <input type="text" class="form-control" id="description" name="picdes" autocomplete="off" required>
+          </div>
+          <div class="form-group">
+            <div class="text-muted text-left"><label for="upload">上传者</label></div>
+            <input type="text" class="form-control" id="upload" name="picloader" autocomplete="off" required>
+          </div>
           <input class="btn" type=file name=file>
           <input class="btn btn-primary my-2" type=submit value=Upload>
         </form>
@@ -72,21 +93,20 @@
           {% for pic in pics %}
           <div class="col-md-4 px-4 d-flex align-items-stretch">
             <div class="card mb-4 shadow-sm">
-              <img src="{{ url_for('static', filename='imgs/'+pic.name+'.jpg') }}" class="card-img-top" alt="">
-
+              <img src="{{ url_for('static', filename='imgs/'+pic.path) }}" class="card-img-top" alt="">
               <div class="card-body d-flex flex-column">
                 <h5 class="card-title mt-0">{{pic.name}}</h5>
-                <p class="card-text mt-0">这是正在建设中的图片介绍区 @A@...前端好麻烦好麻烦</p>
+                <p class="card-text mt-0">{{pic.desc}}</p>
                 <div class="d-flex flex-fill align-items-end justify-content-between">
-                  <!-- <form class="display: inline;" method="post" action="{{url_for('delpic', pic_id=pic.id)}}">
+                  <form class="display: inline;" method="post" action="{{url_for('delpic', pic_id=pic.id)}}">
                     <input class="btn btn-sm btn-outline-secondary" type="submit" name="delete" value="Delete"
-                      onclick="return confirm('Are you sure?')">
-                  </form> -->
-                  <form class="display: inline;" method="get" action="#">
+                      onclick="return confirm('确定删除该图片？')">
+                  </form>
+                  <!-- <form class="display: inline;" method="get" action="#">
                     <input class="btn btn-sm btn-outline-secondary" type="submit" name="delete" value="Delete"
                       onclick="return confirm('删除功能修复中，一切的一切起源于一个小小的函数...')">
-                  </form>
-                  <small class="text-muted">未知上传者</small>
+                  </form> -->
+                  <small class="text-muted">{{pic.uploader}}</small>
                 </div>
               </div>
             </div>
