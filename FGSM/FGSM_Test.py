@@ -46,4 +46,4 @@ def check(img_path, std_path, model_path):
     if torch.argmax(MyNet(img), dim=1) != torch.tensor([0]):
         return "神经网络检测为8"
 
-    return r"攻击成功!Flag:SUSCTF{6radi3nt_1s_4ll_Y0u_Ne3d}"
+    return r"攻击成功!  Flag:SUSCTF{6radi3nt_1s_4ll_Y0u_Ne3d}"
