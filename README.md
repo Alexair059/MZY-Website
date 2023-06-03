@@ -1,5 +1,10 @@
-# Watchlist
-A *watchlist website* based on Flask
+# MZY-Website
+A *website* based on Flask
+
+### Sites
+
+- MZY-Pic
+- FGSM-Test
 
 ### Features
 
